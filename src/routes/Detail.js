@@ -3,10 +3,11 @@ import { useParams } from "react-router-dom";
 import { useState } from "react";
 import { cleanup } from "@testing-library/react";
 import { Nav } from "react-bootstrap";
+import { addItem } from "../store";
 import '../App.css';
 
 import { Context1 } from './../App.js'
-
+import { useDispatch } from "react-redux";
 
 
 function Detail(props){
@@ -18,6 +19,19 @@ function Detail(props){
     let [alert, setAlert] = useState(true)
     let [Dfade, DsetFade] = useState('')
     let [탭, 탭변경] = useState(0)
+    let dispatch = useDispatch()
+
+    useEffect(()=>{      
+      
+      let 꺼낸거 = localStorage.getItem('watched', [찾은상품.id])
+      꺼낸거 = JSON.parse(꺼낸거)
+      꺼낸거.push(찾은상품.id)
+      꺼낸거 = new Set(꺼낸거)
+      꺼낸거 = Array.from(꺼낸거)
+      localStorage.setItem('watched', JSON.stringify(꺼낸거))
+
+    }, [])
+
 
     useEffect(()=>{
         let a = setTimeout(()=>{ }, 2000)
@@ -54,7 +68,9 @@ function Detail(props){
               <h4 className="pt-5">{찾은상품.title}</h4>
               <p>{찾은상품.content}</p>
               <p>{찾은상품.price}원</p>
-              <button className="btn btn-danger">주문하기</button> 
+              <button className="btn btn-danger" onClick={()=>{
+                dispatch(addItem({id : 1, name : 'Red Knit', count : 1}))
+              }}>주문하기</button> 
             </div>
           </div>
 

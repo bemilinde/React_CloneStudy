@@ -1,21 +1,40 @@
 /* eslint-disable */
-import { createContext, useState } from 'react';
+import { createContext, Suspense, lazy, useEffect, useState } from 'react';
 import { Navbar, Container, Nav } from 'react-bootstrap';
 import './App.css';
 import data from './data.js'
-import Detail from './routes/Detail.js'
-import Cart from './routes/Cart.js'
-import { Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom'
+// import Detail from './routes/Detail.js'
+// import Cart from './routes/Cart.js'
+import { Routes, Route, Link, useNavigate, Outlet, json } from 'react-router-dom'
 import axios from 'axios';
+import { useQuery } from 'react-query';
 
 export let Context1 = createContext();
 
 
+const Detail = lazy(()=>import('./routes/Detail.js'));
+const Cart = lazy(()=>import('./routes/Cart.js'));
+import Test from './test';
+
+
 function App() {
+
+  useEffect(()=>{
+    localStorage.setItem('watched', JSON.stringify( [] ))
+    
+  }, [])
+
 
   let [shoes, setShoes] = useState(data);
   let navigate = useNavigate();
   let [재고] = useState([10, 11, 12])
+  
+  let result = useQuery('작명', ()=>
+     axios.get('https://codingapple1.github.io/userdata.json').then((a)=>{
+      console.log('요청됨')
+       return a.data
+    })
+  )
 
   return (
     <div className="App">
@@ -26,6 +45,13 @@ function App() {
           <Nav className="me-auto">
             <Nav.Link onClick={()=>{navigate('/')}}>Home</Nav.Link>
             <Nav.Link onClick={()=>{navigate('/detail/0')}}>Detail</Nav.Link>
+            <Nav.Link onClick={()=>{navigate('/cart')}}>Cart</Nav.Link>
+            <Nav.Link onClick={()=>{navigate('/test')}}>test</Nav.Link>
+          </Nav>
+          <Nav className='ms-auto'>
+            { result.isLoading ? '로딩중' : result.data.name}
+            { result.error && '에러'}
+            { result.data && result.data.name }
           </Nav>
         </Container>
       </Navbar>
@@ -64,12 +90,15 @@ function App() {
           </>
         }/>
         <Route path='/detail/:id' element={
-          <Context1.Provider value={{ 재고, shoes}}>
-           <Detail shoes={shoes}/>
-          </Context1.Provider>
+          <Suspense fallback = { <div>로딩중임</div>}>
+            <Context1.Provider value={{ 재고, shoes}}>
+            <Detail shoes={shoes}/>
+            </Context1.Provider>
+          </Suspense>
         }/>
 
         <Route path="/cart" element= <Cart/>/>
+        <Route path="/test" element= <Test/>/>
 
 
         <Route path="/about" element={ <About/> } >  
